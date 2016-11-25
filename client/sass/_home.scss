@@ -1,0 +1,12 @@
+$white: #ffffff;
+
+.color {
+	background-color: $white;
+	border: 1px solid white;
+}
+
+.message-display {
+	height: 200px;
+	border: 1px solid black;
+	overflow: scroll;
+}
