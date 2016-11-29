@@ -2,6 +2,7 @@
 
 const express = require('express');
 const path = require('path');
+const bodyParser = require('body-parser');
 const app = express();
 const httpServer = require('http').createServer(app);
 const io = require('socket.io')();
@@ -9,6 +10,9 @@ const io = require('socket.io')();
 // loads env file 
 require('dotenv').load();
 require('./config/mysql.js');
+
+//
+app.use(bodyParser.urlencoded({extended: true}));
 
 //CORS
 app.all('*', (req, res, next) => {
@@ -24,18 +28,16 @@ app.all('*', (req, res, next) => {
 
 });
 
-// app.use('*', (req, res, next) => {
-// 	io.sockets.on('connection', (socket) => {
-// 	  console.log('a user connected');
-// 	  sockets.push(socket);
-// 	});
-// });
+//http routes
+app.use('/chat', require('./routes/chat'));
 
 const PORT = 3000;
+
 httpServer.listen(PORT, () => {
   console.log(`Chat: Running on port ${PORT}`);
 });
 
+//web socket connection
 require('./controllers/chat').listen(httpServer);
 
 module.exports = app;
