@@ -6,6 +6,10 @@ const app = express();
 const httpServer = require('http').createServer(app);
 const io = require('socket.io')();
 
+// loads env file 
+require('dotenv').load();
+require('./config/mysql.js');
+
 //CORS
 app.all('*', (req, res, next) => {
   res.header("Access-Control-Allow-Origin", "http://localhost:3002");
