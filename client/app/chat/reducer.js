@@ -3,11 +3,11 @@ const initialState = {
 	messages: []
 }
 
-const homeReducer = (state = initialState, action) => {
+const chatReducer = (state = initialState, action) => {
 	switch (action.type) {
 		case A.NEW_MESSAGE: 
 			return { ...state, messages: state.messages.concat([action.payload])};
 	}
 	return state;
 }
-export default homeReducer;
+export default chatReducer;

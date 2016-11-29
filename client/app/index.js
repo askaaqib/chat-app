@@ -8,12 +8,15 @@ import { syncHistoryWithStore } from 'react-router-redux';
 const app = document.getElementById('app');
 const history = syncHistoryWithStore(browserHistory, store);
 
-import HomePage from './home/components/home-page';
 //components 
+import HomePage from './home/components/home-page';
+import ChatPage from './chat/components/chat-page';
+
 ReactDOM.render((
 	<Provider store={ store }> 
 	  <Router history={ history }>
-	   	<Route path="/" component={ HomePage }/>	
+	  	<Route path="/" component={ HomePage }/>	
+	   	<Route path="/chat" component={ ChatPage }/>	
 	  </Router>
   </Provider> 
 ), app);
