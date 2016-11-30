@@ -8,3 +8,8 @@ module.exports.insertRoom = (name, password) => {
 module.exports.getRoomByName = (name) => {
 	return `SELECT * FROM rooms WHERE name = '${name}';`
 }
+
+//gets a room by its unique room_id
+module.exports.getRoomById = (id) => {
+	return `SELECT * FROM rooms WHERE room_id = '${id}';`
+}

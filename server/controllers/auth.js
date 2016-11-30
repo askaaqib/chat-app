@@ -9,8 +9,7 @@ Created: 11/29/2016
 //dependencies
 const bcrypt = require('bcrypt');
 const db = require('../config/mysql').database;
-const authQueries = require('../sql/queries/auth');
-
+const Room = require('../models/room');
 
 //bcrypt salt #
 const saltRounds = 10;
@@ -31,14 +30,18 @@ const createRoom = (req, res, next) => {
 
 			if(err) return res.status(500).json({error: 'password hash error'});
 
-			//save name and hashed password to SQL
-			db.query(authQueries.insertRoom(req.body.name, hash), (err, result) => {
+			let room = new Room({name: req.body.name, password: hash});
 
-				if(err) return res.status(400).json(err);
-				console.log()
-				//no errors means room created
-				return res.status(201).send();
-			});
+			room
+				.save()
+				.then((createdRoom) => {
+					console.log('result', createdRoom);
+					return res.status(201).json(createdRoom);
+				})
+				.catch((err) => {
+					console.log('err', err);
+					return res.status(400).json(err);
+				});
 		});
 	});
 };
@@ -50,24 +53,26 @@ const authenticateRoom = (req, res, next) => {
 		return res.status(400).json({ error: 'missing name or password'});
 	}
 
-	db.query(authQueries.getRoomByName(req.body.name), (err, result) => {
+	let attemptRoom = new Room({name: req.body.name});
 
-		if(err) return res.status(500).json({error: err});
+	attemptRoom.getByName()
+		.then((publicRoom) => {
+			bcrypt.compare(req.body.password, attemptRoom.password, (err, authenticated) => {
+				
+				if(authenticated) {
+					return res.status(200).json(publicRoom);
+				} else {
+					return res.status(401).json({ error: 'authentication failed' });
+				}
+			});	
+		})
+		.catch((err) => {
+			//if room not found by name return a 404
+			if(err == 404) return res.status(404).send();
 
-		//room doesn't exist with that name -- not found 
-		if(!result.length) return res.status(404).send();
-		
-		let room = result[0];
-
-		bcrypt.compare(req.body.password, room.password, (err, authenticated) => {
-			
-			if(authenticated) {
-				return res.status(200).json(room);
-			} else {
-				return res.status(401).json({ error: 'authentication failed' });
-			}
-		});	
-	});
+			// for everything else return an error
+			return res.status(400).json({error: err});
+		});
 };
 
 module.exports = {

@@ -16,12 +16,15 @@ Created: 11/29/2016
 | created_at | datetime     | YES  |     | CURRENT_TIMESTAMP |                             |
 +------------+--------------+------+-----+-------------------+-----------------------------+
 */
+
 const authQueries = require('../sql/queries/auth');
+const db = require('../config/mysql').database;
+const promise = require('q').Promise; 
 
 module.exports = class Room {
 	constructor(roomData) {
 		this.room_id = roomData.room_id || null,
-		this.name = roomData.room_id || null, 
+		this.name = roomData.name || null, 
 		this.password = roomData.password || null,
 		this.updated_at = roomData.updated_at || null, 
 		this.created_at = roomData.created_at || null
@@ -36,13 +39,27 @@ module.exports = class Room {
 	}
 
 	/**
-   * create {function}
-   * creates a new room
+   * saves {function}
+   * saves a new room to SQL db
    * @public
    * @return {Object}
    */
-	create() {
-
+	save() {
+		return promise((resolve, reject) => {
+		 	db.query(authQueries.insertRoom(this.name, this.password), (err, result) => {
+				if(err) return reject(err); 
+				
+				//no errors means room created
+				//get and set this to room created
+				this.getById(result.insertId)
+					.then(() => {
+						return resolve(this._toObject());
+					})
+					.catch((err) => {
+						return reject(err);
+					})
+			});
+		});
 	}
 
 	/**
@@ -52,7 +69,16 @@ module.exports = class Room {
    * @return {Object}
    */
 	getByName() {
+		return promise((resolve, reject) => {
+			db.query(authQueries.getRoomByName(this.name), (err, result) => {
+				if(err) return reject(err);
 
+				if(!result.length) return reject(404);
+
+				this._set(result[0]);
+				return resolve(this._toObject()); 
+			});
+		});
 	}
 
 	/**
@@ -62,7 +88,16 @@ module.exports = class Room {
    * @return {Object}
    */
   getById(id) {
+  	return promise((resolve, reject) => {
+  		db.query(authQueries.getRoomById(id), (err, result) => {
+  			if(err) return reject(err);
 
+  			if(!result.length) return reject(404);
+
+  			this._set(result[0]);
+  			return resolve(this._toObject());
+  		});	
+  	});
   };
 
   /**
