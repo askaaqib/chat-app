@@ -1,1 +1,4 @@
-actions.js
+export const CREATED_ROOM = 'CREATED_ROOM';
+export const JOINED_ROOM = 'JOINED_ROOM';
+export const CREATING_ROOM = "CREATING_ROOM";
+export const JOINING_ROOM = "JOINING_ROOM";

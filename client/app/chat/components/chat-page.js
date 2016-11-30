@@ -39,14 +39,14 @@ class ChatPage extends React.Component {
 			<div className="chat-page">
 				<div className="message-display"><div className="message-feed">{messages}</div></div>
 				<form id="chat-form" name="message-entry" onSubmit={this.handleSubmit.bind(this)}> 
-					<div className="form-group">
+					<div className="">
 						<input type="text"
-						className="form-control"
+						className=""
 						id = "chat-input"
 						name = "chat-input"
 						ref ={(input) => this.chatInput = input}/>
 					</div>
-					<button id="chat-submit" className="btn btn-default" type="submit">SEND</button>
+					<button id="chat-submit" className="" type="submit">SEND</button>
 				</form> 
 			</div>
 		);
