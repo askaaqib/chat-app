@@ -17,21 +17,26 @@ class ChatPage extends React.Component {
 	}
 
 	componentWillMount() {
-		// this.socket = io.connect('http://localhost:3000');
+		this.socket = io.connect('http://localhost:3000');
 
-		// this.socket.on('connect', () => {
+		this.socket.on('connect', () => {
+			console.log('emiting-join');
+			this.socket.emit('join-room', this.props.chat.room);
+		});
 
-		// });
+		this.socket.on('room-joined', () => {
 
-		// this.socket.on('message', (messageData) => {
-		// 	console.log('messageData', messageData);
-		// 	this.props.addNewMessage(messageData);
-		// });
+		});
+
+		this.socket.on('message', (messageData) => {
+			console.log('messageData', messageData);
+			this.props.addNewMessage(messageData);
+		});
 	}
 
 	render() {
 
-		let messages = this.props.home.messages.map((message) => {
+		let messages = this.props.chat.messages.map((message) => {
 			return <div>{message.body}</div>
 		});
 
@@ -55,7 +60,10 @@ class ChatPage extends React.Component {
 
 // CONNECT TO REDUX AND EXPORT COMPONENT 
 const mapStateToProps = (state) => {
-	return { home: state.home }
+	return { 
+		home: state.home,
+		chat: state.chat
+	}
 }
 
 const mapDispatchToProps = (dispatch) => {

@@ -31731,23 +31731,28 @@
 		_createClass(ChatPage, [{
 			key: 'componentWillMount',
 			value: function componentWillMount() {
-				// this.socket = io.connect('http://localhost:3000');
+				var _this2 = this;
 	
-				// this.socket.on('connect', () => {
+				this.socket = io.connect('http://localhost:3000');
 	
-				// });
+				this.socket.on('connect', function () {
+					console.log('emiting-join');
+					_this2.socket.emit('join-room', _this2.props.chat.room);
+				});
 	
-				// this.socket.on('message', (messageData) => {
-				// 	console.log('messageData', messageData);
-				// 	this.props.addNewMessage(messageData);
-				// });
+				this.socket.on('room-joined', function () {});
+	
+				this.socket.on('message', function (messageData) {
+					console.log('messageData', messageData);
+					_this2.props.addNewMessage(messageData);
+				});
 			}
 		}, {
 			key: 'render',
 			value: function render() {
-				var _this2 = this;
+				var _this3 = this;
 	
-				var messages = this.props.home.messages.map(function (message) {
+				var messages = this.props.chat.messages.map(function (message) {
 					return _react2.default.createElement(
 						'div',
 						null,
@@ -31778,7 +31783,7 @@
 								id: 'chat-input',
 								name: 'chat-input',
 								ref: function ref(input) {
-									return _this2.chatInput = input;
+									return _this3.chatInput = input;
 								} })
 						),
 						_react2.default.createElement(
@@ -31798,7 +31803,10 @@
 	
 	
 	var mapStateToProps = function mapStateToProps(state) {
-		return { home: state.home };
+		return {
+			home: state.home,
+			chat: state.chat
+		};
 	};
 	
 	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
@@ -31848,6 +31856,7 @@
 	  value: true
 	});
 	var NEW_MESSAGE = exports.NEW_MESSAGE = 'NEW_MESSAGE';
+	var SET_ROOM = exports.SET_ROOM = 'SET_ROOM';
 
 /***/ },
 /* 303 */
@@ -31871,6 +31880,7 @@
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 	
 	var initialState = {
+		room: {},
 		messages: []
 	};
 	
@@ -31881,6 +31891,8 @@
 		switch (action.type) {
 			case A.NEW_MESSAGE:
 				return _extends({}, state, { messages: state.messages.concat([action.payload]) });
+			case A.SET_ROOM:
+				return _extends({}, state, { room: action.payload });
 		}
 		return state;
 	};
@@ -32030,17 +32042,26 @@
 	
 	var A = _interopRequireWildcard(_actions);
 	
+	var _actions2 = __webpack_require__(/*! ../chat/actions */ 302);
+	
 	var _auth = __webpack_require__(/*! ../api/auth */ 308);
+	
+	var _reactRouter = __webpack_require__(/*! react-router */ 237);
 	
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 	
+	//api calls
+	//actions
 	var createRoom = exports.createRoom = function createRoom(formData) {
 		return function (dispatch) {
 			dispatch({ type: A.CREATING_ROOM });
 	
 			(0, _auth.postRoom)(formData).then(function (response) {
+				console.log(response);
 				if (response.status == 201) {
 					dispatch({ type: A.CREATED_ROOM });
+					dispatch({ type: _actions2.SET_ROOM, payload: response.data });
+					_reactRouter.browserHistory.push('/chat');
 				}
 			}).catch(function (error) {
 				console.log(error);
@@ -32048,14 +32069,17 @@
 		};
 	};
 	
+	// router history for redirecting
 	var joinRoom = exports.joinRoom = function joinRoom(formData) {
 		return function (dispatch) {
-			dispatch({ type: A.JOINING_ROOM });
+			dispatch({ type: A.AUTHENTICATING_ROOM });
 	
 			(0, _auth.authenticateRoom)(formData).then(function (response) {
 				console.log(response);
 				if (response.status == 200) {
-					dispatch({ type: A.JOINED_ROOM });
+					dispatch({ type: A.AUTHENTICATED_ROOM });
+					dispatch({ type: _actions2.SET_ROOM, payload: response.data });
+					_reactRouter.browserHistory.push('/chat');
 				}
 			}).catch(function (error) {
 				console.log(error);
@@ -32087,8 +32111,8 @@
 	var initialState = {
 		created_room: false,
 		creating_room: false,
-		joined_room: false,
-		joining_room: false
+		authenticating_room: false,
+		authenticated_room: true
 	};
 	
 	var homeReducer = function homeReducer() {
@@ -32096,14 +32120,14 @@
 		var action = arguments[1];
 	
 		switch (action.type) {
-			case A.CREATED_ROOM:
-				return _extends({}, state, { creating_room: false, created_room: true });
-			case A.JOINED_ROOM:
-				return _extends({}, state, { joining_room: false, joined_room: true });
 			case A.CREATING_ROOM:
 				return _extends({}, state, { creating_room: true });
-			case A.JOINING_ROOM:
-				return _extends({}, state, { joining_room: true });
+			case A.CREATED_ROOM:
+				return _extends({}, state, { creating_room: false, created_room: true });
+			case A.AUTHENTICATING_ROOM:
+				return _extends({}, state, { authenticating_room: true });
+			case A.AUTHENTICATED_ROOM:
+				return _extends({}, state, { authenticated_room: true, authenticating_room: false });
 		}
 		return state;
 	};
@@ -32116,15 +32140,15 @@
   \*****************************/
 /***/ function(module, exports) {
 
-	'use strict';
+	"use strict";
 	
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
 	var CREATED_ROOM = exports.CREATED_ROOM = 'CREATED_ROOM';
-	var JOINED_ROOM = exports.JOINED_ROOM = 'JOINED_ROOM';
 	var CREATING_ROOM = exports.CREATING_ROOM = "CREATING_ROOM";
-	var JOINING_ROOM = exports.JOINING_ROOM = "JOINING_ROOM";
+	var AUTHENTICATING_ROOM = exports.AUTHENTICATING_ROOM = "AUTHENTICATING_ROOM";
+	var AUTHENTICATED_ROOM = exports.AUTHENTICATED_ROOM = "AUTHENTICATED_ROOM";
 
 /***/ },
 /* 308 */

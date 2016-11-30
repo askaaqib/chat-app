@@ -2,20 +2,20 @@ import * as A from './actions';
 const initialState = {
 	created_room: false,
 	creating_room: false, 
-	joined_room: false, 
-	joining_room: false,
+	authenticating_room: false,
+	authenticated_room: true
 }
 
 const homeReducer = (state = initialState, action) => {
 	switch (action.type) {
-		case A.CREATED_ROOM: 
-			return { ...state, creating_room: false, created_room: true };
-		case A.JOINED_ROOM: 
-			return { ...state, joining_room: false, joined_room: true };
 		case A.CREATING_ROOM: 
 			return { ...state, creating_room: true };
-		case A.JOINING_ROOM: 
-			return { ...state, joining_room: true };
+		case A.CREATED_ROOM: 
+			return { ...state, creating_room: false, created_room: true };
+		case A.AUTHENTICATING_ROOM: 
+			return { ...state, authenticating_room: true };
+		case A.AUTHENTICATED_ROOM: 
+			return { ...state, authenticated_room: true , authenticating_room: false };
 	}
 	return state;
 }
