@@ -12,6 +12,7 @@ require('dotenv').load();
 require('./config/mysql.js');
 
 //
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
 //CORS

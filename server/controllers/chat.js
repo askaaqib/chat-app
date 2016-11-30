@@ -13,6 +13,11 @@ io.sockets.on("connection", (socket)=> {
 	socket.join(1);
 	// add user
 	socket.room = 1;
+	
+	socket.on("authenticated", (roomData) => {
+
+	});
+
 	socket.on("message", (messageData) => {
 		console.log('message', messageData);
 

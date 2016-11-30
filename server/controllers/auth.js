@@ -16,8 +16,7 @@ const authQueries = require('../sql/queries/auth');
 const saltRounds = 10;
 
 // creates a new chat room with name and password
-const newRoom = (req, res, next) => {
-
+const createRoom = (req, res, next) => {
 	if(!req.body.name || !req.body.password) {
 		return res.status(400).json({ error: 'missing name or password'});
 	}
@@ -36,7 +35,7 @@ const newRoom = (req, res, next) => {
 			db.query(authQueries.insertRoom(req.body.name, hash), (err, result) => {
 
 				if(err) return res.status(400).json(err);
-
+				console.log()
 				//no errors means room created
 				return res.status(201).send();
 			});
@@ -45,7 +44,7 @@ const newRoom = (req, res, next) => {
 };
 
 //authenticates a name and password match 
-const authenticate = (req, res, next) => {
+const authenticateRoom = (req, res, next) => {
 
 	if(!req.body.name || !req.body.password) {
 		return res.status(400).json({ error: 'missing name or password'});
@@ -63,7 +62,7 @@ const authenticate = (req, res, next) => {
 		bcrypt.compare(req.body.password, room.password, (err, authenticated) => {
 			
 			if(authenticated) {
-				return res.status(200).json({ authenticated: authenticated });
+				return res.status(200).json(room);
 			} else {
 				return res.status(401).json({ error: 'authentication failed' });
 			}
@@ -72,6 +71,6 @@ const authenticate = (req, res, next) => {
 };
 
 module.exports = {
-	newRoom,
-	authenticate
+	createRoom,
+	authenticateRoom
 }
