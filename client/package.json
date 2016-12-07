@@ -10,7 +10,6 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.14.0",
-    "bootstrap": "^3.3.7",
     "ejs": "^2.5.2",
     "express": "^4.14.0",
     "react": "^15.3.2",
@@ -33,5 +32,8 @@
     "gulp-sass": "^2.3.2",
     "redux-logger": "^2.6.1",
     "webpack": "^1.13.2"
+  },
+  "engines": {
+    "node": "4.2.3"
   }
 }
