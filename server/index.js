@@ -32,7 +32,7 @@ app.all('*', (req, res, next) => {
 //http routes
 app.use('/chat', require('./routes/chat'));
 
-const PORT = 3000;
+const PORT = process.env.PRODUCTION_PORT || 3000;
 
 httpServer.listen(PORT, () => {
   console.log(`Chat: Running on port ${PORT}`);
