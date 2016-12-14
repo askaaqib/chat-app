@@ -11,9 +11,6 @@ const unauthorized = { status: "401" };
 
 io.sockets.on("connection", (socket)=> {	
 
-	socket.join(1)
-	socket.room = 1;
-
 	socket.on("join-room", (roomData) => {
 		socket.join(roomData.room_id)
 		socket.room = roomData.room_id;

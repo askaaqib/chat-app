@@ -35,7 +35,6 @@ const createRoom = (req, res, next) => {
 			room
 				.save()
 				.then((createdRoom) => {
-					console.log('result', createdRoom);
 					return res.status(201).json(createdRoom);
 				})
 				.catch((err) => {

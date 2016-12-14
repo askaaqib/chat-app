@@ -36,25 +36,25 @@ class ChatPage extends React.Component {
 	componentWillMount() {
 
 		//if there's no room_id redirect to home page
-		// if(!this.props.chat.room.room_id) {
-		// 	browserHistory.push('/');
-		// }
+		if(!this.props.chat.room.room_id) {
+			browserHistory.push('/');
+		}
 
-		this.socket = io.connect('http://localhost:3000');
+		this.socket = io.connect('http://ec2-54-183-234-7.us-west-1.compute.amazonaws.com');
 
 		//when it connects to the server join the room that passed auth
 		this.socket.on('connect', () => {
-				// this.socket.emit('join-room', this.props.chat.room);
+				this.socket.emit('join-room', this.props.chat.room);
 		});
 
 		// when the room is joined activate listener to enable messages
-		// this.socket.on('room-joined', (roomData) => {
+		this.socket.on('room-joined', (roomData) => {
 			
-		this.socket.on('chat-event', (eventData) => {
-			this.props.addNewEvent(eventData);
-		});
+			this.socket.on('chat-event', (eventData) => {
+				this.props.addNewEvent(eventData);
+			});
 
-		// });
+		});
 
 	}
 
@@ -75,11 +75,9 @@ class ChatPage extends React.Component {
 						messageClass = "received-message";
 						textClass = "received-message-text";
 					}
-					console.log(i);
-					// let senderLabel = 	;
 					return (
 
-						<div className={ messageClass }>
+						<div className={ messageClass } key={i}>
 							<div className={ textClass }>
 								{event.body}
 							</div>
