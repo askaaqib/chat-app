@@ -7,14 +7,13 @@ const app = express();
 const httpServer = require('http').createServer(app);
 const io = require('socket.io')();
 
-//
+//body parser config
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
 //CORS
 app.all('*', (req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://localhost:3002");
-  // res.header("Access-Control-Allow-Origin", "http://localhost:3002");
+  res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Credentials", true);
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-type,Accept,X-Access-Token,X-Key');
