@@ -13,6 +13,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 //CORS
 app.all('*', (req, res, next) => {
+  console.log(req);
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Credentials", true);
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
