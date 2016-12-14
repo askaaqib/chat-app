@@ -3,7 +3,8 @@ const initialState = {
 	created_room: false,
 	creating_room: false, 
 	authenticating_room: false,
-	authenticated_room: true
+	authenticated_room: true,
+	username: undefined
 }
 
 const homeReducer = (state = initialState, action) => {
@@ -16,6 +17,8 @@ const homeReducer = (state = initialState, action) => {
 			return { ...state, authenticating_room: true };
 		case A.AUTHENTICATED_ROOM: 
 			return { ...state, authenticated_room: true , authenticating_room: false };
+		case A.SET_USERNAME: 
+			return { ...state, username: action.payload };
 	}
 	return state;
 }

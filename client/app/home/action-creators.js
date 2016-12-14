@@ -8,6 +8,11 @@ import { postRoom, authenticateRoom } from '../api/auth';
 // router history for redirecting
 import { browserHistory } from 'react-router';
 
+export const setUsername = (username) => {
+	return (dispatch) => {
+		dispatch({type: A.SET_USERNAME, payload: username});
+	}
+}
 export const createRoom = (formData) => {
 	return (dispatch) => {
 		dispatch({type: A.CREATING_ROOM });

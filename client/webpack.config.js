@@ -13,6 +13,7 @@ var config = {
   },
   module : {
       loaders : [
+        //JS
         {
           test : /\.js?/,
           exclude: NODE_MODULES,
@@ -21,7 +22,7 @@ var config = {
           query: {
             presets: ['es2015','react','stage-2']
           }
-        }
+        },
       ]
     }
 };

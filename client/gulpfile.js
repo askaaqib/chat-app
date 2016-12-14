@@ -17,5 +17,5 @@ gulp.task('style', ()=> {
 
 /* == SASS:WATCH == */
 gulp.task('style:watch', ()=> {
-  gulp.watch('./sass/*.scss', ['style']);
+  gulp.watch('./sass/*', ['style']);
 });

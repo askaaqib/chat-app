@@ -31702,6 +31702,8 @@
 	
 	var _actionCreators = __webpack_require__(/*! ../action-creators.js */ 301);
 	
+	var _reactRouter = __webpack_require__(/*! react-router */ 237);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -31709,6 +31711,11 @@
 	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	//chat-event types
+	var MESSAGE = 1;
+	var ROOM_JOIN = 2;
+	var ROOM_LEAVE = 3;
 	
 	var ChatPage = function (_React$Component) {
 		_inherits(ChatPage, _React$Component);
@@ -31721,8 +31728,18 @@
 			_this.handleSubmit = function (e) {
 				e.preventDefault();
 				console.log(_this.chatInput.value);
-				_this.socket.emit('message', { body: _this.chatInput.value });
+				_this.socket.emit('chat-event', {
+					type: MESSAGE,
+					body: _this.chatInput.value,
+					sender: _this.props.home.username
+				});
 				_this.chatInput.value = '';
+			};
+	
+			_this.handleKeyPress = function (e) {
+				if (e.key == 'Enter') {
+					_this.handleSubmit(e);
+				}
 			};
 	
 			return _this;
@@ -31733,43 +31750,74 @@
 			value: function componentWillMount() {
 				var _this2 = this;
 	
+				//if there's no room_id redirect to home page
+				// if(!this.props.chat.room.room_id) {
+				// 	browserHistory.push('/');
+				// }
+	
 				this.socket = io.connect('http://localhost:3000');
 	
+				//when it connects to the server join the room that passed auth
 				this.socket.on('connect', function () {
-					console.log('emiting-join');
-					_this2.socket.emit('join-room', _this2.props.chat.room);
+					// this.socket.emit('join-room', this.props.chat.room);
 				});
 	
-				this.socket.on('room-joined', function () {});
+				// when the room is joined activate listener to enable messages
+				// this.socket.on('room-joined', (roomData) => {
 	
-				this.socket.on('message', function (messageData) {
-					console.log('messageData', messageData);
-					_this2.props.addNewMessage(messageData);
+				this.socket.on('chat-event', function (eventData) {
+					_this2.props.addNewEvent(eventData);
 				});
+	
+				// });
 			}
 		}, {
 			key: 'render',
 			value: function render() {
 				var _this3 = this;
 	
-				var messages = this.props.chat.messages.map(function (message) {
-					return _react2.default.createElement(
-						'div',
-						null,
-						message.body
-					);
+				var eventItems = this.props.chat.events.map(function (event, i) {
+	
+					switch (event.type) {
+						case MESSAGE:
+	
+							var messageClass = void 0;
+							var textClass = void 0;
+	
+							if (event.sender == _this3.props.home.username) {
+								messageClass = "sent-message";
+								textClass = "sent-message-text";
+							} else {
+								messageClass = "received-message";
+								textClass = "received-message-text";
+							}
+							console.log(i);
+							// let senderLabel = 	;
+							return _react2.default.createElement(
+								'div',
+								{ className: messageClass },
+								_react2.default.createElement(
+									'div',
+									{ className: textClass },
+									event.body
+								)
+							);
+	
+						default:
+							return;
+					}
 				});
 	
 				return _react2.default.createElement(
 					'div',
-					{ className: 'chat-page' },
+					{ id: 'chat-page' },
 					_react2.default.createElement(
 						'div',
 						{ className: 'message-display' },
 						_react2.default.createElement(
 							'div',
 							{ className: 'message-feed' },
-							messages
+							eventItems
 						)
 					),
 					_react2.default.createElement(
@@ -31777,22 +31825,27 @@
 						{ id: 'chat-form', name: 'message-entry', onSubmit: this.handleSubmit.bind(this) },
 						_react2.default.createElement(
 							'div',
-							{ className: '' },
-							_react2.default.createElement('input', { type: 'text',
-								className: '',
+							{ id: 'chat-input-row' },
+							_react2.default.createElement('textarea', { type: 'text',
 								id: 'chat-input',
 								name: 'chat-input',
+								onKeyPress: this.handleKeyPress,
 								ref: function ref(input) {
 									return _this3.chatInput = input;
-								} })
-						),
-						_react2.default.createElement(
-							'button',
-							{ id: 'chat-submit', className: '', type: 'submit' },
-							'SEND'
+								} }),
+							_react2.default.createElement(
+								'button',
+								{ id: 'chat-submit', className: 'btn', type: 'submit' },
+								'SEND'
+							)
 						)
 					)
 				);
+			}
+		}, {
+			key: 'componentWillUnmount',
+			value: function componentWillUnmount() {
+				this.socket.close();
 			}
 		}]);
 	
@@ -31811,7 +31864,7 @@
 	
 	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
 		return {
-			addNewMessage: (0, _redux.bindActionCreators)(_actionCreators.addNewMessage, dispatch)
+			addNewEvent: (0, _redux.bindActionCreators)(_actionCreators.addNewEvent, dispatch)
 		};
 	};
 	
@@ -31829,7 +31882,7 @@
 	Object.defineProperty(exports, "__esModule", {
 		value: true
 	});
-	exports.addNewMessage = undefined;
+	exports.addNewEvent = undefined;
 	
 	var _actions = __webpack_require__(/*! ./actions */ 302);
 	
@@ -31837,9 +31890,9 @@
 	
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 	
-	var addNewMessage = exports.addNewMessage = function addNewMessage(messageData) {
+	var addNewEvent = exports.addNewEvent = function addNewEvent(messageData) {
 		return function (dispatch) {
-			dispatch({ type: A.NEW_MESSAGE, payload: messageData });
+			dispatch({ type: A.NEW_EVENT, payload: messageData });
 		};
 	};
 
@@ -31855,7 +31908,7 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	var NEW_MESSAGE = exports.NEW_MESSAGE = 'NEW_MESSAGE';
+	var NEW_EVENT = exports.NEW_EVENT = 'NEW_EVENT';
 	var SET_ROOM = exports.SET_ROOM = 'SET_ROOM';
 
 /***/ },
@@ -31881,7 +31934,7 @@
 	
 	var initialState = {
 		room: {},
-		messages: []
+		events: []
 	};
 	
 	var chatReducer = function chatReducer() {
@@ -31889,8 +31942,8 @@
 		var action = arguments[1];
 	
 		switch (action.type) {
-			case A.NEW_MESSAGE:
-				return _extends({}, state, { messages: state.messages.concat([action.payload]) });
+			case A.NEW_EVENT:
+				return _extends({}, state, { events: state.events.concat([action.payload]) });
 			case A.SET_ROOM:
 				return _extends({}, state, { room: action.payload });
 		}
@@ -31953,6 +32006,8 @@
 					password: _this.roomPassword.value
 				};
 	
+				_this.props.setUsername(_this.username.value);
+	
 				if (_this.joinOrCreate == 'create') {
 					_this.props.createRoom(formData);
 				} else if (_this.joinOrCreate == 'join') {
@@ -31969,35 +32024,59 @@
 	
 				return _react2.default.createElement(
 					'div',
-					{ className: 'home-page' },
+					{ id: 'home-page' },
 					_react2.default.createElement(
 						'form',
-						{ className: 'authentication-form', name: 'authentication-form', onSubmit: this.handleSubmit.bind(this) },
+						{ id: 'authentication-form', name: 'authentication-form', onSubmit: this.handleSubmit.bind(this) },
+						_react2.default.createElement(
+							'label',
+							{ className: 'home-form-label' },
+							'Username'
+						),
+						_react2.default.createElement('input', { type: 'text',
+							id: 'username',
+							name: 'username',
+							className: 'home-form-input',
+							ref: function ref(input) {
+								return _this2.username = input;
+							} }),
+						_react2.default.createElement(
+							'label',
+							{ className: 'home-form-label' },
+							'Room Name'
+						),
 						_react2.default.createElement('input', { type: 'text',
 							id: 'room-name',
 							name: 'room-name',
+							className: 'home-form-input',
 							ref: function ref(input) {
 								return _this2.roomName = input;
 							} }),
+						_react2.default.createElement(
+							'label',
+							{ className: 'home-form-label' },
+							'Password'
+						),
 						_react2.default.createElement('input', { type: 'password',
 							id: 'room-password',
 							name: 'room-password',
+							className: 'home-form-input',
 							ref: function ref(input) {
 								return _this2.roomPassword = input;
 							} }),
 						_react2.default.createElement(
 							'button',
-							{ type: 'submit', onClick: function onClick() {
+							{ className: 'btn home-form-submit', type: 'submit', onClick: function onClick() {
 									return _this2.joinOrCreate = 'create';
 								} },
-							'CREATE ROOM'
+							'CREATE CHAT ROOM'
 						),
 						_react2.default.createElement(
 							'button',
-							{ type: 'submit', onClick: function onClick() {
+							{ className: 'btn home-form-submit', type: 'submit', onClick: function onClick() {
 									return _this2.joinOrCreate = 'join';
 								} },
-							'JOIN ROOM'
+							'JOIN CHAT ROOM'
 						)
 					)
 				);
@@ -32017,8 +32096,8 @@
 	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
 		return {
 			createRoom: (0, _redux.bindActionCreators)(actions.createRoom, dispatch),
-			joinRoom: (0, _redux.bindActionCreators)(actions.joinRoom, dispatch)
-			// addNewMessage	: bindActionCreators(addNewMessage, dispatch),
+			joinRoom: (0, _redux.bindActionCreators)(actions.joinRoom, dispatch),
+			setUsername: (0, _redux.bindActionCreators)(actions.setUsername, dispatch)
 		};
 	};
 	
@@ -32036,7 +32115,7 @@
 	Object.defineProperty(exports, "__esModule", {
 		value: true
 	});
-	exports.joinRoom = exports.createRoom = undefined;
+	exports.joinRoom = exports.createRoom = exports.setUsername = undefined;
 	
 	var _actions = __webpack_require__(/*! ./actions */ 307);
 	
@@ -32052,6 +32131,13 @@
 	
 	//api calls
 	//actions
+	var setUsername = exports.setUsername = function setUsername(username) {
+		return function (dispatch) {
+			dispatch({ type: A.SET_USERNAME, payload: username });
+		};
+	};
+	
+	// router history for redirecting
 	var createRoom = exports.createRoom = function createRoom(formData) {
 		return function (dispatch) {
 			dispatch({ type: A.CREATING_ROOM });
@@ -32069,7 +32155,6 @@
 		};
 	};
 	
-	// router history for redirecting
 	var joinRoom = exports.joinRoom = function joinRoom(formData) {
 		return function (dispatch) {
 			dispatch({ type: A.AUTHENTICATING_ROOM });
@@ -32112,7 +32197,8 @@
 		created_room: false,
 		creating_room: false,
 		authenticating_room: false,
-		authenticated_room: true
+		authenticated_room: true,
+		username: undefined
 	};
 	
 	var homeReducer = function homeReducer() {
@@ -32128,6 +32214,8 @@
 				return _extends({}, state, { authenticating_room: true });
 			case A.AUTHENTICATED_ROOM:
 				return _extends({}, state, { authenticated_room: true, authenticating_room: false });
+			case A.SET_USERNAME:
+				return _extends({}, state, { username: action.payload });
 		}
 		return state;
 	};
@@ -32149,6 +32237,7 @@
 	var CREATING_ROOM = exports.CREATING_ROOM = "CREATING_ROOM";
 	var AUTHENTICATING_ROOM = exports.AUTHENTICATING_ROOM = "AUTHENTICATING_ROOM";
 	var AUTHENTICATED_ROOM = exports.AUTHENTICATED_ROOM = "AUTHENTICATED_ROOM";
+	var SET_USERNAME = exports.SET_USERNAME = "SET_USERNAME";
 
 /***/ },
 /* 308 */

@@ -1,20 +1,71 @@
-.chat-page {
+#chat-page {
 	height: 100vh;
-}
-.color {
-	background-color: white;
-	border: 1px solid white;
+	overflow: auto;
+	background-color: $chat-page-background;
+	background: $home-background url(../assets/images/home-background.jpg) repeat fixed center;
 }
 .message-display {
-	height: 90vh;
-	border: 1px solid red;
+	display: block;
+	border-radius: 5px;
+	height: 80vh;
+	width: 91vw;
+	margin: 0 auto;
+	margin-top: 2vh;
+	border: 1px solid rgba(0,0,0,0.5);
 	overflow: scroll;
+	background-color: $message-display-background;
 }
-#chat-form { 
+#chat-input-row {
+	height: 18vh;
+	width: 91vw;
+	margin: 0 auto;
+	display: flex;
+	align-items: center;
 }
 #chat-input {
-
+	background-color: $message-display-background;
+	font-size: 16px;
+	height: 60%;
+	resize: none;
+	border-radius: 5px;
+	border: 1px solid rgba(0,0,0,0.5);
+	width: 79%;
+	margin-right: 2px;
+	padding-top: 1%;
+	padding-left: 1%;
+	margin-right: 2%;
 }
 #chat-submit {
+	height: 40%;
+	width: 18%;
+	font-size: 15px;
+	background-color: $chat-submit-background;
+	color: $chat-submit;
 
+	&:hover {
+		background-color: $chat-submit-background-hover;
+		color: $chat-submit-hover;
+	}
+}	
+.received-message {
+
+}	
+.received-message-text {
+	margin: 5px;
+	padding: 5px;
+	display: inline-block;
+	border-radius: 5px;
+	background-color: $_grey;
+	color: $_black;
+}	
+.sent-message {
+
+}
+.sent-message-text {
+	margin: 5px;
+	padding: 5px;
+	display: inline-block;
+	border-radius: 5px;
+	background-color: $_accent;
+	color: $_white;
 }

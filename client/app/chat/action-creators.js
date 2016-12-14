@@ -1,7 +1,7 @@
 import * as A from './actions';
 
-export const addNewMessage = (messageData) => {
+export const addNewEvent = (messageData) => {
 	return (dispatch) => {
-		dispatch({type: A.NEW_MESSAGE, payload: messageData });
+		dispatch({type: A.NEW_EVENT, payload: messageData });
 	};
 };

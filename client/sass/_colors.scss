@@ -1,0 +1,23 @@
+//theme colors!
+
+$_accent: #4E3A6D;
+$_lightAccent: #D9D1E6;
+$_grey: #C0BEC2;
+$_white: #efefef;
+$_black: #222222;
+
+//home
+$home-background: $_black;
+$home-form-submit: $_white;
+$home-form-submit-background: $_accent;
+$home-form-submit-background-hover: $_lightAccent;
+$home-form-submit-hover: $_black;
+$home-form-submit-active: $_white;
+$home-form-label: $_white;
+//chat
+$chat-page-background: $_grey;
+$message-display-background: $_white;
+$chat-submit: $_white;
+$chat-submit-background: $_accent;
+$chat-submit-hover: $_black;
+$chat-submit-background-hover: $_lightAccent;

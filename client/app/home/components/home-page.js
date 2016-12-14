@@ -17,6 +17,8 @@ class HomePage extends React.Component {
 				password: this.roomPassword.value
 			};
 
+			this.props.setUsername(this.username.value);
+
 			if(this.joinOrCreate == 'create') {
 				this.props.createRoom(formData);
 			} else if(this.joinOrCreate == 'join') {
@@ -27,20 +29,29 @@ class HomePage extends React.Component {
 
 	render() {
 		return(
-			<div className='home-page'>
-				<form className='authentication-form' name='authentication-form' onSubmit={this.handleSubmit.bind(this)}> 
+			<div id='home-page'>
+				<form id='authentication-form' name='authentication-form' onSubmit={this.handleSubmit.bind(this)}> 
+					<label className="home-form-label">Username</label>
+					<input type="text"
+					id = "username"
+					name = "username"
+					className ="home-form-input"
+					ref ={(input) => this.username = input}/>
+					<label className="home-form-label">Room Name</label>
 					<input type="text"
 					id = "room-name"
 					name = "room-name"
+					className ="home-form-input"
 					ref ={(input) => this.roomName = input}/>
-
+					<label className="home-form-label">Password</label>
 					<input type="password"
 					id = "room-password"
 					name = "room-password"
+					className="home-form-input"
 					ref ={(input) => this.roomPassword = input}/>
 			
-					<button type="submit" onClick={ () => this.joinOrCreate = 'create' }>CREATE ROOM</button> 
-					<button type="submit" onClick={ () => this.joinOrCreate = 'join' }>JOIN ROOM</button>
+					<button className="btn home-form-submit" type="submit" onClick={ () => this.joinOrCreate = 'create' }>CREATE CHAT ROOM</button> 
+					<button className="btn home-form-submit" type="submit" onClick={ () => this.joinOrCreate = 'join' }>JOIN CHAT ROOM</button>
 				</form> 
 				
 			</div>
@@ -56,8 +67,8 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
 	return { 
 		createRoom: bindActionCreators(actions.createRoom, dispatch),
-		joinRoom: bindActionCreators(actions.joinRoom, dispatch)
-		// addNewMessage	: bindActionCreators(addNewMessage, dispatch),
+		joinRoom: bindActionCreators(actions.joinRoom, dispatch),
+		setUsername	: bindActionCreators(actions.setUsername, dispatch)
 	}
 }
 

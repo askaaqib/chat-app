@@ -1,2 +1,2 @@
-export const NEW_MESSAGE = 'NEW_MESSAGE';
+export const NEW_EVENT = 'NEW_EVENT';
 export const SET_ROOM = 'SET_ROOM';

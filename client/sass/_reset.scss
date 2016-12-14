@@ -2,6 +2,7 @@
    v2.0 | 20110126
    License: none (public domain)
 */
+@import url('https://fonts.googleapis.com/css?family=Lato');
 
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
@@ -21,6 +22,7 @@ time, mark, audio, video {
 	border: 0;
 	font-size: 100%;
 	font: inherit;
+	font-family: 'Lato', sans-serif; // added
 	vertical-align: baseline;
 }
 /* HTML5 display-role reset for older browsers */
@@ -30,7 +32,7 @@ footer, header, hgroup, menu, nav, section {
 }
 body {
 	line-height: 1;
-	height: 100vh;
+	height: 100%;
 }
 ol, ul {
 	list-style: none;
@@ -47,6 +49,15 @@ table {
 	border-collapse: collapse;
 	border-spacing: 0;
 }
+//added by Jorge
+input, button, textarea {
+	font-family: 'Lato', sans-serif;
+	
+	&:focus {
+		outline: none;
+	}
+}
 #app {
+	display: block;
 	height: 100vh;
 }

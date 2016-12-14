@@ -1,7 +1,14 @@
 import React from 'react'
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
-import { addNewMessage } from '../action-creators.js'
+import { addNewEvent } from '../action-creators.js'
+import { browserHistory } from 'react-router'
+
+
+//chat-event types
+const MESSAGE = 1;
+const ROOM_JOIN = 2;
+const ROOM_LEAVE = 3;
 
 class ChatPage extends React.Component {
 	constructor(props) {
@@ -10,53 +17,102 @@ class ChatPage extends React.Component {
 		this.handleSubmit = (e) => {
 			e.preventDefault();
 			console.log(this.chatInput.value);
-			this.socket.emit('message', { body: this.chatInput.value });
+			this.socket.emit('chat-event', { 
+				type: MESSAGE , 
+				body: this.chatInput.value,
+				sender: this.props.home.username
+			});
 			this.chatInput.value = '';
+		};
+
+		this.handleKeyPress = (e) => {
+			if(e.key == 'Enter'){
+			  this.handleSubmit(e);
+			}
 		};
 
 	}
 
 	componentWillMount() {
+
+		//if there's no room_id redirect to home page
+		// if(!this.props.chat.room.room_id) {
+		// 	browserHistory.push('/');
+		// }
+
 		this.socket = io.connect('http://localhost:3000');
 
+		//when it connects to the server join the room that passed auth
 		this.socket.on('connect', () => {
-			console.log('emiting-join');
-			this.socket.emit('join-room', this.props.chat.room);
+				// this.socket.emit('join-room', this.props.chat.room);
 		});
 
-		this.socket.on('room-joined', () => {
-
+		// when the room is joined activate listener to enable messages
+		// this.socket.on('room-joined', (roomData) => {
+			
+		this.socket.on('chat-event', (eventData) => {
+			this.props.addNewEvent(eventData);
 		});
 
-		this.socket.on('message', (messageData) => {
-			console.log('messageData', messageData);
-			this.props.addNewMessage(messageData);
-		});
+		// });
+
 	}
 
 	render() {
 
-		let messages = this.props.chat.messages.map((message) => {
-			return <div>{message.body}</div>
+		let eventItems = this.props.chat.events.map((event, i) => {
+
+			switch(event.type) {
+				case MESSAGE: 
+
+					let messageClass;
+					let textClass;
+
+					if(event.sender == this.props.home.username) {
+						messageClass = "sent-message";
+						textClass = "sent-message-text";
+					} else {
+						messageClass = "received-message";
+						textClass = "received-message-text";
+					}
+					console.log(i);
+					// let senderLabel = 	;
+					return (
+
+						<div className={ messageClass }>
+							<div className={ textClass }>
+								{event.body}
+							</div>
+						</div>)
+
+			default:
+				return
+			}
+
 		});
 
 		return(
-			<div className="chat-page">
-				<div className="message-display"><div className="message-feed">{messages}</div></div>
+			<div id="chat-page">
+				<div className="message-display"><div className="message-feed">{eventItems}</div></div>
 				<form id="chat-form" name="message-entry" onSubmit={this.handleSubmit.bind(this)}> 
-					<div className="">
-						<input type="text"
-						className=""
+					<div id="chat-input-row"> 
+						<textarea type="text"
 						id = "chat-input"
 						name = "chat-input"
+						onKeyPress = {this.handleKeyPress}
 						ref ={(input) => this.chatInput = input}/>
-					</div>
-					<button id="chat-submit" className="" type="submit">SEND</button>
-				</form> 
+						<button id="chat-submit" className="btn" type="submit">SEND</button>
+					</div> 
+				</form>
 			</div>
 		);
 	}
+
+	componentWillUnmount() {
+		this.socket.close();
+	}
 }
+
 
 // CONNECT TO REDUX AND EXPORT COMPONENT 
 const mapStateToProps = (state) => {
@@ -68,7 +124,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
 	return { 
-		addNewMessage	: bindActionCreators(addNewMessage, dispatch),
+		addNewEvent	: bindActionCreators(addNewEvent, dispatch),
 	}
 }
 
