@@ -29,7 +29,7 @@ app.all('*', (req, res, next) => {
 //http routes
 app.use('/chat', require('./routes/chat'));
 
-const PORT = 3000;
+const PORT = 80;
 
 httpServer.listen(PORT, () => {
   console.log(`Chat: Running on port ${PORT}`);
