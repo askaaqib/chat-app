@@ -33481,7 +33481,7 @@
 			case 'localhost':
 				return 'http://localhost:3000';
 			//production environment
-			case 'http://jor-chata.s3-website-us-west-1.amazonaws.com':
+			case 'jor-chata.s3-website-us-west-1.amazonaws.com':
 				return 'http://ec2-54-183-234-7.us-west-1.compute.amazonaws.com';
 			default:
 				return null;
@@ -33538,12 +33538,15 @@
 	
 			_this.handleSubmit = function (e) {
 				e.preventDefault();
-				console.log(_this.chatInput.value);
-				_this.socket.emit('chat-event', {
-					type: MESSAGE,
-					body: _this.chatInput.value,
-					sender: _this.props.home.username
-				});
+	
+				if (_this.chatInput.value.length) {
+					_this.socket.emit('chat-event', {
+						type: MESSAGE,
+						body: _this.chatInput.value,
+						sender: _this.props.home.username
+					});
+				}
+	
 				_this.chatInput.value = '';
 			};
 	
@@ -33566,16 +33569,25 @@
 					_reactRouter.browserHistory.push('/');
 				}
 	
-				this.socket = io.connect('http://ec2-54-183-234-7.us-west-1.compute.amazonaws.com');
+				switch (window.location.hostname) {
+					case 'localhost':
+						this.socket = io.connect('http://localhost:8080');
+						break;
+	
+					case 'jor-chata.s3-website-us-west-1.amazonaws.com':
+						this.socket = io.connect('http://ec2-54-183-234-7.us-west-1.compute.amazonaws.com');
+						break;
+				}
 	
 				//when it connects to the server join the room that passed auth
 				this.socket.on('connect', function () {
 					_this2.socket.emit('join-room', _this2.props.chat.room);
+					// this.socket.emit('join-room', {room_id: 1});
 				});
 	
 				// when the room is joined activate listener to enable messages
 				this.socket.on('room-joined', function (roomData) {
-	
+					console.log(roomData);
 					_this2.socket.on('chat-event', function (eventData) {
 						_this2.props.addNewEvent(eventData);
 					});
@@ -33621,7 +33633,9 @@
 					{ id: 'chat-page' },
 					_react2.default.createElement(
 						'div',
-						{ className: 'message-display' },
+						{ ref: function ref(element) {
+								return _this3.messageDisplay = element;
+							}, className: 'message-display' },
 						_react2.default.createElement(
 							'div',
 							{ className: 'message-feed' },
@@ -33649,6 +33663,11 @@
 						)
 					)
 				);
+			}
+		}, {
+			key: 'componentDidUpdate',
+			value: function componentDidUpdate() {
+				this.messageDisplay.scrollTop = this.messageDisplay.scrollHeight;
 			}
 		}, {
 			key: 'componentWillUnmount',

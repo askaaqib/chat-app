@@ -16,12 +16,15 @@ class ChatPage extends React.Component {
 
 		this.handleSubmit = (e) => {
 			e.preventDefault();
-			console.log(this.chatInput.value);
-			this.socket.emit('chat-event', { 
-				type: MESSAGE , 
-				body: this.chatInput.value,
-				sender: this.props.home.username
-			});
+
+			if(this.chatInput.value.length) {
+				this.socket.emit('chat-event', { 
+					type: MESSAGE , 
+					body: this.chatInput.value,
+					sender: this.props.home.username
+				});
+			}
+			
 			this.chatInput.value = '';
 		};
 
@@ -40,16 +43,25 @@ class ChatPage extends React.Component {
 			browserHistory.push('/');
 		}
 
-		this.socket = io.connect('http://ec2-54-183-234-7.us-west-1.compute.amazonaws.com');
+		switch(window.location.hostname) {
+			case 'localhost': 
+				this.socket = io.connect('http://localhost:8080');
+				break;
+
+			case 'jor-chata.s3-website-us-west-1.amazonaws.com':
+				this.socket = io.connect('http://ec2-54-183-234-7.us-west-1.compute.amazonaws.com');
+				break;
+		}
 
 		//when it connects to the server join the room that passed auth
 		this.socket.on('connect', () => {
 				this.socket.emit('join-room', this.props.chat.room);
+				// this.socket.emit('join-room', {room_id: 1});
 		});
 
 		// when the room is joined activate listener to enable messages
 		this.socket.on('room-joined', (roomData) => {
-			
+			console.log(roomData);
 			this.socket.on('chat-event', (eventData) => {
 				this.props.addNewEvent(eventData);
 			});
@@ -91,7 +103,9 @@ class ChatPage extends React.Component {
 
 		return(
 			<div id="chat-page">
-				<div className="message-display"><div className="message-feed">{eventItems}</div></div>
+				<div ref={(element) => this.messageDisplay = element} className="message-display">
+					<div className="message-feed">{eventItems}</div>
+				</div>
 				<form id="chat-form" name="message-entry" onSubmit={this.handleSubmit.bind(this)}> 
 					<div id="chat-input-row"> 
 						<textarea type="text"
@@ -104,6 +118,10 @@ class ChatPage extends React.Component {
 				</form>
 			</div>
 		);
+	}
+
+	componentDidUpdate() {
+		this.messageDisplay.scrollTop = this.messageDisplay.scrollHeight;
 	}
 
 	componentWillUnmount() {
