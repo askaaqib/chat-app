@@ -24855,8 +24855,11 @@
 		created_room: false,
 		creating_room: false,
 		authenticating_room: false,
-		authenticated_room: true,
-		username: undefined
+		authenticated_room: false,
+		room_name_taken: false,
+		room_not_found: false,
+		incomplete_form: false,
+		incorrect_password: false
 	};
 	
 	var homeReducer = function homeReducer() {
@@ -24865,15 +24868,54 @@
 	
 		switch (action.type) {
 			case A.CREATING_ROOM:
-				return _extends({}, state, { creating_room: true });
+				return _extends({}, state, {
+					creating_room: true,
+					authenticating_room: false,
+					room_name_taken: false,
+					incomplete_form: false,
+					room_not_found: false,
+					incorrect_password: false
+				});
 			case A.CREATED_ROOM:
-				return _extends({}, state, { creating_room: false, created_room: true });
+				return _extends({}, state, {
+					creating_room: false,
+					created_room: true,
+					room_name_taken: false,
+					incomplete_form: false,
+					room_not_found: false,
+					incorrect_password: false
+				});
 			case A.AUTHENTICATING_ROOM:
-				return _extends({}, state, { authenticating_room: true });
+				return _extends({}, state, {
+					authenticating_room: true,
+					creating_room: false,
+					room_name_taken: false,
+					incomplete_form: false,
+					room_not_found: false,
+					incorrect_password: false
+				});
 			case A.AUTHENTICATED_ROOM:
-				return _extends({}, state, { authenticated_room: true, authenticating_room: false });
-			case A.SET_USERNAME:
-				return _extends({}, state, { username: action.payload });
+				return _extends({}, state, {
+					authenticated_room: true,
+					authenticating_room: false,
+					room_name_taken: false,
+					incomplete_form: false,
+					room_not_found: false,
+					incorrect_password: false
+				});
+			case A.ROOM_NAME_TAKEN:
+				return _extends({}, state, { room_name_taken: true });
+			case A.INCOMPLETE_FORM:
+				console.log('inside reducer');
+				return _extends({}, state, { incomplete_form: true });
+			case A.EDITING_ROOM_NAME:
+				return _extends({}, state, { room_name_taken: false, room_not_found: false });
+			case A.ROOM_NOT_FOUND:
+				return _extends({}, state, { room_not_found: true });
+			case A.INCORRECT_PASSWORD:
+				return _extends({}, state, { incorrect_password: true });
+			case A.EDITING_PASSWORD:
+				return _extends({}, state, { incorrect_password: false });
 		}
 		return state;
 	};
@@ -24891,11 +24933,16 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	var CREATED_ROOM = exports.CREATED_ROOM = 'CREATED_ROOM';
+	var CREATED_ROOM = exports.CREATED_ROOM = "CREATED_ROOM";
 	var CREATING_ROOM = exports.CREATING_ROOM = "CREATING_ROOM";
 	var AUTHENTICATING_ROOM = exports.AUTHENTICATING_ROOM = "AUTHENTICATING_ROOM";
 	var AUTHENTICATED_ROOM = exports.AUTHENTICATED_ROOM = "AUTHENTICATED_ROOM";
-	var SET_USERNAME = exports.SET_USERNAME = "SET_USERNAME";
+	var ROOM_NAME_TAKEN = exports.ROOM_NAME_TAKEN = "ROOM_NAME_TAKEN";
+	var ROOM_NOT_FOUND = exports.ROOM_NOT_FOUND = "ROOM_NOT_FOUND";
+	var INCOMPLETE_FORM = exports.INCOMPLETE_FORM = "INCOMPLETE_FORM";
+	var EDITING_ROOM_NAME = exports.EDITING_ROOM_NAME = "EDITING_ROOM_NAME";
+	var EDITING_PASSWORD = exports.EDITING_PASSWORD = "EDITING_PASSWORD";
+	var INCORRECT_PASSWORD = exports.INCORRECT_PASSWORD = "INCORRECT_PASSWORD";
 
 /***/ },
 /* 222 */
@@ -31844,22 +31891,53 @@
 	
 			var _this = _possibleConstructorReturn(this, (HomePage.__proto__ || Object.getPrototypeOf(HomePage)).call(this, props));
 	
+			_this.roomNameInputClass = 'home-form-input';
+			_this.passwordInputClass = 'home-form-input';
+			_this.usernameInputClass = 'home-form-input';
+	
 			_this.joinOrCreate = undefined;
+			_this.submittedForm;
 	
 			_this.handleSubmit = function (e) {
 				e.preventDefault();
 	
 				var formData = {
-					name: _this.roomName.value,
+					username: _this.username.value,
+					room_name: _this.roomName.value,
 					password: _this.roomPassword.value
 				};
-	
-				_this.props.setUsername(_this.username.value);
 	
 				if (_this.joinOrCreate == 'create') {
 					_this.props.createRoom(formData);
 				} else if (_this.joinOrCreate == 'join') {
 					_this.props.joinRoom(formData);
+				}
+			};
+	
+			_this.setValidationClasses = function (submittedForm) {
+				if (_this.props.home.incomplete_form && submittedForm) {
+					if (!_this.username.value.length) _this.usernameInputClass = _this.usernameInputClass + ' invalid-field';
+					if (!_this.roomName.value.length) _this.roomNameInputClass = _this.roomNameInputClass + ' invalid-field';
+					if (!_this.roomPassword.value.length) _this.passwordInputClass = _this.passwordInputClass + ' invalid-field';
+				}
+			};
+	
+			_this.resetValidationClasses = function (field) {
+				switch (field) {
+					case 'username':
+						_this.usernameInputClass = 'home-form-input';
+						_this.forceUpdate();
+						break;
+					case 'room-name':
+						_this.roomNameInputClass = 'home-form-input';
+						_this.props.editingField(field);
+						_this.forceUpdate();
+						break;
+					case 'password':
+						_this.passwordInputClass = 'home-form-input';
+						_this.props.editingField(field);
+						_this.forceUpdate();
+						break;
 				}
 			};
 			return _this;
@@ -31869,6 +31947,37 @@
 			key: 'render',
 			value: function render() {
 				var _this2 = this;
+	
+				var submittedForm = this.props.home.authenticating_room || this.props.home.creating_room;
+				this.setValidationClasses(submittedForm);
+	
+				var roomNameTaken = void 0;
+				var roomNotFound = void 0;
+				var incorrectPassword = void 0;
+	
+				if (this.props.home.room_name_taken) {
+					roomNameTaken = _react2.default.createElement(
+						'span',
+						{ className: 'room-validation-message' },
+						'Room name is not available.'
+					);
+				}
+	
+				if (this.props.home.room_not_found) {
+					roomNotFound = _react2.default.createElement(
+						'span',
+						{ className: 'room-validation-message' },
+						'Room not found.'
+					);
+				}
+	
+				if (this.props.home.incorrect_password) {
+					incorrectPassword = _react2.default.createElement(
+						'span',
+						{ className: 'room-validation-message' },
+						'Incorrect password.'
+					);
+				}
 	
 				return _react2.default.createElement(
 					'div',
@@ -31884,34 +31993,40 @@
 						_react2.default.createElement('input', { type: 'text',
 							id: 'username',
 							name: 'username',
-							className: 'home-form-input',
+							className: this.usernameInputClass,
 							ref: function ref(input) {
 								return _this2.username = input;
-							} }),
+							},
+							onChange: this.resetValidationClasses.bind(this, 'username') }),
 						_react2.default.createElement(
 							'label',
 							{ className: 'home-form-label' },
-							'Room Name'
+							'Room Name',
+							roomNameTaken,
+							roomNotFound
 						),
 						_react2.default.createElement('input', { type: 'text',
 							id: 'room-name',
 							name: 'room-name',
-							className: 'home-form-input',
+							className: this.roomNameInputClass,
 							ref: function ref(input) {
 								return _this2.roomName = input;
-							} }),
+							},
+							onChange: this.resetValidationClasses.bind(this, 'room-name') }),
 						_react2.default.createElement(
 							'label',
 							{ className: 'home-form-label' },
-							'Password'
+							'Password',
+							incorrectPassword
 						),
 						_react2.default.createElement('input', { type: 'password',
 							id: 'room-password',
 							name: 'room-password',
-							className: 'home-form-input',
+							className: this.passwordInputClass,
 							ref: function ref(input) {
 								return _this2.roomPassword = input;
-							} }),
+							},
+							onChange: this.resetValidationClasses.bind(this, 'password') }),
 						_react2.default.createElement(
 							'button',
 							{ className: 'btn home-form-submit', type: 'submit', onClick: function onClick() {
@@ -31943,9 +32058,9 @@
 	
 	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
 		return {
+			editingField: (0, _redux.bindActionCreators)(actions.editingField, dispatch),
 			createRoom: (0, _redux.bindActionCreators)(actions.createRoom, dispatch),
-			joinRoom: (0, _redux.bindActionCreators)(actions.joinRoom, dispatch),
-			setUsername: (0, _redux.bindActionCreators)(actions.setUsername, dispatch)
+			joinRoom: (0, _redux.bindActionCreators)(actions.joinRoom, dispatch)
 		};
 	};
 	
@@ -31963,7 +32078,7 @@
 	Object.defineProperty(exports, "__esModule", {
 		value: true
 	});
-	exports.joinRoom = exports.createRoom = exports.setUsername = undefined;
+	exports.joinRoom = exports.createRoom = exports.editingField = undefined;
 	
 	var _actions = __webpack_require__(/*! ./actions */ 221);
 	
@@ -31979,44 +32094,77 @@
 	
 	//api calls
 	//actions
-	var setUsername = exports.setUsername = function setUsername(username) {
+	var editingField = exports.editingField = function editingField(field) {
 		return function (dispatch) {
-			dispatch({ type: A.SET_USERNAME, payload: username });
+			switch (field) {
+				case 'room-name':
+					dispatch({ type: A.EDITING_ROOM_NAME });
+					break;
+				case 'password':
+					dispatch({ type: A.EDITING_PASSWORD });
+					break;
+			}
 		};
 	};
 	
 	// router history for redirecting
 	var createRoom = exports.createRoom = function createRoom(formData) {
 		return function (dispatch) {
+	
 			dispatch({ type: A.CREATING_ROOM });
 	
-			(0, _auth.postRoom)(formData).then(function (response) {
-				console.log(response);
-				if (response.status == 201) {
-					dispatch({ type: A.CREATED_ROOM });
-					dispatch({ type: _actions2.SET_ROOM, payload: response.data });
-					_reactRouter.browserHistory.push('/chat');
-				}
-			}).catch(function (error) {
-				console.log(error);
-			});
+			if (formData.room_name.length && formData.password.length && formData.username.length) {
+	
+				(0, _auth.postRoom)(formData).then(function (response) {
+					if (response.status == 201) {
+						dispatch({ type: A.CREATED_ROOM });
+						dispatch({ type: _actions2.SET_ROOM, payload: response.data });
+						_reactRouter.browserHistory.push('/chat');
+					}
+				}).catch(function (err) {
+					var error = err.response;
+					if (error.status == 400) {
+						//room name taken
+						if (error.data.errno == 1062) {
+							dispatch({ type: A.ROOM_NAME_TAKEN });
+						}
+					}
+				});
+				//either room name or password missing
+			} else {
+				dispatch({ type: A.INCOMPLETE_FORM });
+			}
 		};
 	};
 	
 	var joinRoom = exports.joinRoom = function joinRoom(formData) {
 		return function (dispatch) {
+	
 			dispatch({ type: A.AUTHENTICATING_ROOM });
 	
-			(0, _auth.authenticateRoom)(formData).then(function (response) {
-				console.log(response);
-				if (response.status == 200) {
-					dispatch({ type: A.AUTHENTICATED_ROOM });
-					dispatch({ type: _actions2.SET_ROOM, payload: response.data });
-					_reactRouter.browserHistory.push('/chat');
-				}
-			}).catch(function (error) {
-				console.log(error);
-			});
+			if (formData.room_name.length && formData.password.length && formData.username.length) {
+	
+				(0, _auth.authenticateRoom)(formData).then(function (response) {
+					if (response.status == 200) {
+						dispatch({ type: A.AUTHENTICATED_ROOM });
+						dispatch({ type: _actions2.SET_ROOM, payload: response.data });
+						_reactRouter.browserHistory.push('/chat');
+					}
+				}).catch(function (err) {
+					var error = err.response;
+					if (error.status == 404) {
+						//room not found
+						dispatch({ type: A.ROOM_NOT_FOUND });
+					}
+	
+					if (error.status == 401) {
+						dispatch({ type: A.INCORRECT_PASSWORD });
+					}
+				});
+				//either room name or password missing
+			} else {
+				dispatch({ type: A.INCOMPLETE_FORM });
+			}
 		};
 	};
 
@@ -33479,7 +33627,7 @@
 		switch (window.location.hostname) {
 			//local environment
 			case 'localhost':
-				return 'http://localhost:3000';
+				return 'http://localhost:8080';
 			//production environment
 			case 'jor-chata.s3-website-us-west-1.amazonaws.com':
 				return 'http://ec2-54-183-234-7.us-west-1.compute.amazonaws.com';

@@ -19,7 +19,8 @@
 }
 .home-form-label {
 	color: $home-form-label;
-	display: inline-block;
+	display: flex;
+	align-items: center;
 	padding-left: 3px;
 	margin-bottom: 5px;
 }
@@ -38,4 +39,12 @@
 		background-color: $home-form-submit-background;
 		color: $home-form-submit-active;
 	}
+}
+.room-validation-message {
+	color: $alert;
+	font-size: 16px;
+	margin-left: 10px; 
+}
+.invalid-field {
+	border: 2px solid $alert;
 }
