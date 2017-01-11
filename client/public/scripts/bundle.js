@@ -33747,7 +33747,7 @@
 				var _this3 = this;
 	
 				var eventItems = this.props.chat.events.map(function (event, i) {
-					console.log(event);
+	
 					switch (event.type) {
 						case MESSAGE:
 	

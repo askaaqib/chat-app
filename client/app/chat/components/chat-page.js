@@ -73,7 +73,7 @@ class ChatPage extends React.Component {
 	render() {
 
 		let eventItems = this.props.chat.events.map((event, i) => {
-			console.log(event);
+			
 			switch(event.type) {
 				case MESSAGE: 
 
