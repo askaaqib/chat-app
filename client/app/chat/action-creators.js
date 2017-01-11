@@ -5,3 +5,9 @@ export const addNewEvent = (messageData) => {
 		dispatch({type: A.NEW_EVENT, payload: messageData });
 	};
 };
+
+export const leaveRoom = () => {
+	return (dispatch) => {
+		dispatch({type: A.LEAVE_ROOM});
+	}
+}

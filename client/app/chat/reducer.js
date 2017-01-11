@@ -10,6 +10,8 @@ const chatReducer = (state = initialState, action) => {
 			return { ...state, events: state.events.concat([action.payload])};
 		case A.SET_ROOM: 
 			return { ...state, room: action.payload };
+		case A.LEAVE_ROOM:
+			return { ...initialState }
 	}
 	return state;
 }

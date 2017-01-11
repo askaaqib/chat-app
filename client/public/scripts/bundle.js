@@ -24810,6 +24810,8 @@
 				return _extends({}, state, { events: state.events.concat([action.payload]) });
 			case A.SET_ROOM:
 				return _extends({}, state, { room: action.payload });
+			case A.LEAVE_ROOM:
+				return _extends({}, initialState);
 		}
 		return state;
 	};
@@ -24829,6 +24831,7 @@
 	});
 	var NEW_EVENT = exports.NEW_EVENT = 'NEW_EVENT';
 	var SET_ROOM = exports.SET_ROOM = 'SET_ROOM';
+	var LEAVE_ROOM = exports.LEAVE_ROOM = 'LEAVE_ROOM';
 
 /***/ },
 /* 220 */
@@ -33682,6 +33685,9 @@
 		function ChatPage(props) {
 			_classCallCheck(this, ChatPage);
 	
+			//binds 
+			// this.onUnload = this.onUnload.bind(this);
+	
 			var _this = _possibleConstructorReturn(this, (ChatPage.__proto__ || Object.getPrototypeOf(ChatPage)).call(this, props));
 	
 			_this.handleSubmit = function (e) {
@@ -33713,6 +33719,8 @@
 			value: function componentWillMount() {
 				var _this2 = this;
 	
+				window.addEventListener("beforeunload", this.onUnload);
+	
 				//if there's no room_id redirect to home page
 				if (!this.props.chat.room.room_id) {
 					_reactRouter.browserHistory.push('/');
@@ -33736,8 +33744,16 @@
 	
 				// when the room is joined activate listener to enable messages
 				this.socket.on('room-joined', function (roomData) {
+	
+					//event listener for chat-event
 					_this2.socket.on('chat-event', function (eventData) {
 						_this2.props.addNewEvent(eventData);
+					});
+					//emits event to show room was joined
+					_this2.socket.emit('chat-event', {
+						type: ROOM_JOIN,
+						user: _this2.props.chat.room.username,
+						time: Date.now()
 					});
 				});
 			}
@@ -33748,22 +33764,29 @@
 	
 				var eventItems = this.props.chat.events.map(function (event, i) {
 	
+					/*===============================================================
+	    set the time format for the events
+	    ===============================================================*/
+					//converts the timestamp into a date
+					var date = new Date(event.time);
+	
+					//makes for 12 hour display instead of 24
+					var hours = date.getHours() > 12 ? date.getHours() - 12 : date.getHours();
+					//converts 0 AM to 12 AM
+					hours = hours === 0 ? 12 : hours;
+	
+					var minutes = date.getMinutes();
+					//checks if minute is less than 10 to add the 0
+					minutes = minutes < 10 ? '0' + minutes : minutes;
+	
+					var ampm = date.getHours() >= 12 ? 'PM' : 'AM';
+	
 					switch (event.type) {
+	
+						/*===============================================================
+	     CASE MESSAGE 
+	     ===============================================================*/
 						case MESSAGE:
-	
-							//converts the timestamp into a date
-							var date = new Date(event.time);
-	
-							//makes for 12 hour display instead of 24
-							var hours = date.getHours() > 12 ? date.getHours() - 12 : date.getHours();
-							//converts 0 AM to 12 AM
-							hours = hours === 0 ? 12 : hours;
-	
-							var minutes = date.getMinutes();
-							//checks if minute is less than 10 to add the 0
-							minutes = minutes < 10 ? '0' + minutes : minutes;
-	
-							var ampm = date.getHours() >= 12 ? 'PM' : 'AM';
 	
 							var messageClass = void 0;
 							var textClass = void 0;
@@ -33808,6 +33831,50 @@
 									'div',
 									{ className: textClass },
 									event.body
+								)
+							);
+	
+						/*===============================================================
+	     CASE ROOM_JOIN
+	     ===============================================================*/
+						case ROOM_JOIN:
+	
+							return _react2.default.createElement(
+								'div',
+								{ className: 'room-join-leave', key: i },
+								event.user,
+								' joined the conversation. ',
+								_react2.default.createElement(
+									'span',
+									{ className: 'join-leave-time' },
+									' ',
+									hours,
+									':',
+									minutes,
+									' ',
+									ampm
+								)
+							);
+	
+						/*===============================================================
+	     CASE ROOM_LEAVE
+	     ===============================================================*/
+						case ROOM_LEAVE:
+	
+							return _react2.default.createElement(
+								'div',
+								{ className: 'room-join-leave', key: i },
+								event.user,
+								' left the conversation. ',
+								_react2.default.createElement(
+									'span',
+									{ className: 'join-leave-time' },
+									' ',
+									hours,
+									':',
+									minutes,
+									' ',
+									ampm
 								)
 							);
 	
@@ -33860,7 +33927,33 @@
 		}, {
 			key: 'componentWillUnmount',
 			value: function componentWillUnmount() {
+	
+				this.props.leaveRoom();
+	
+				window.removeEventListener("beforeunload", this.onUnload);
+	
+				//emits event to show others room was left by a user
+				//when the user unmounts in app instead of navigating through browser
+				this.socket.emit('chat-event', {
+					type: ROOM_LEAVE,
+					user: this.props.chat.room.username,
+					time: Date.now()
+				});
+	
 				this.socket.close();
+			}
+	
+			//emits event to let others know when a user has left the chat through the browser
+			//i.e. closing the tab or navigating to another site
+	
+		}, {
+			key: 'onUnload',
+			value: function onUnload(event) {
+				this.socket.emit('chat-event', {
+					type: ROOM_LEAVE,
+					user: this.props.chat.room.username,
+					time: Date.now()
+				});
 			}
 		}]);
 	
@@ -33879,7 +33972,8 @@
 	
 	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
 		return {
-			addNewEvent: (0, _redux.bindActionCreators)(_actionCreators.addNewEvent, dispatch)
+			addNewEvent: (0, _redux.bindActionCreators)(_actionCreators.addNewEvent, dispatch),
+			leaveRoom: (0, _redux.bindActionCreators)(_actionCreators.leaveRoom, dispatch)
 		};
 	};
 	
@@ -33897,7 +33991,7 @@
 	Object.defineProperty(exports, "__esModule", {
 		value: true
 	});
-	exports.addNewEvent = undefined;
+	exports.leaveRoom = exports.addNewEvent = undefined;
 	
 	var _actions = __webpack_require__(/*! ./actions */ 219);
 	
@@ -33908,6 +34002,12 @@
 	var addNewEvent = exports.addNewEvent = function addNewEvent(messageData) {
 		return function (dispatch) {
 			dispatch({ type: A.NEW_EVENT, payload: messageData });
+		};
+	};
+	
+	var leaveRoom = exports.leaveRoom = function leaveRoom() {
+		return function (dispatch) {
+			dispatch({ type: A.LEAVE_ROOM });
 		};
 	};
 
