@@ -33691,7 +33691,8 @@
 					_this.socket.emit('chat-event', {
 						type: MESSAGE,
 						body: _this.chatInput.value,
-						sender: _this.props.home.username
+						sender: _this.props.chat.room.username,
+						time: Date.now()
 					});
 				}
 	
@@ -33735,7 +33736,6 @@
 	
 				// when the room is joined activate listener to enable messages
 				this.socket.on('room-joined', function (roomData) {
-					console.log(roomData);
 					_this2.socket.on('chat-event', function (eventData) {
 						_this2.props.addNewEvent(eventData);
 					});
@@ -33747,14 +33747,49 @@
 				var _this3 = this;
 	
 				var eventItems = this.props.chat.events.map(function (event, i) {
-	
+					console.log(event);
 					switch (event.type) {
 						case MESSAGE:
 	
+							//converts the timestamp into a date
+							var date = new Date(event.time);
+	
+							//makes for 12 hour display instead of 24
+							var hours = date.getHours() > 12 ? date.getHours() - 12 : date.getHours();
+							//converts 0 AM to 12 AM
+							hours = hours === 0 ? 12 : hours;
+	
+							var minutes = date.getMinutes();
+							//checks if minute is less than 10 to add the 0
+							minutes = minutes < 10 ? '0' + minutes : minutes;
+	
+							var ampm = date.getHours() >= 12 ? 'PM' : 'AM';
+	
 							var messageClass = void 0;
 							var textClass = void 0;
+							var senderLabel = void 0;
 	
-							if (event.sender == _this3.props.home.username) {
+							// determines a change in message sender from previous index and sets sender tag
+							if (i === 0 || i > 0 && event.sender != _this3.props.chat.events[i - 1].sender) {
+								senderLabel = _react2.default.createElement(
+									'div',
+									{ className: 'sender-label' },
+									event.sender,
+									'  ',
+									_react2.default.createElement(
+										'span',
+										{ className: 'message-time' },
+										' ',
+										hours,
+										':',
+										minutes,
+										' ',
+										ampm
+									)
+								);
+							}
+							// sets clases for sent or received message styling
+							if (event.sender == _this3.props.chat.room.username) {
 								messageClass = "sent-message";
 								textClass = "sent-message-text";
 							} else {
@@ -33764,6 +33799,11 @@
 							return _react2.default.createElement(
 								'div',
 								{ className: messageClass, key: i },
+								_react2.default.createElement(
+									'div',
+									null,
+									senderLabel
+								),
 								_react2.default.createElement(
 									'div',
 									{ className: textClass },

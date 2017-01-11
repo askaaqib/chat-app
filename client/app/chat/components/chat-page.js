@@ -21,7 +21,8 @@ class ChatPage extends React.Component {
 				this.socket.emit('chat-event', { 
 					type: MESSAGE , 
 					body: this.chatInput.value,
-					sender: this.props.home.username
+					sender: this.props.chat.room.username,
+					time: Date.now()
 				});
 			}
 			
@@ -61,7 +62,6 @@ class ChatPage extends React.Component {
 
 		// when the room is joined activate listener to enable messages
 		this.socket.on('room-joined', (roomData) => {
-			console.log(roomData);
 			this.socket.on('chat-event', (eventData) => {
 				this.props.addNewEvent(eventData);
 			});
@@ -73,14 +73,34 @@ class ChatPage extends React.Component {
 	render() {
 
 		let eventItems = this.props.chat.events.map((event, i) => {
-
+			console.log(event);
 			switch(event.type) {
 				case MESSAGE: 
 
+					//converts the timestamp into a date
+					let date = new Date(event.time);
+
+					//makes for 12 hour display instead of 24
+					let hours = date.getHours() > 12 ? date.getHours() - 12 : date.getHours();
+					//converts 0 AM to 12 AM
+					hours = hours === 0 ? 12 : hours;
+
+					let minutes = date.getMinutes();
+					//checks if minute is less than 10 to add the 0
+					minutes = minutes < 10 ? `0${minutes}`: minutes;
+
+					let ampm = date.getHours() >= 12 ? 'PM' : 'AM';
+
 					let messageClass;
 					let textClass;
+					let senderLabel;
 
-					if(event.sender == this.props.home.username) {
+					// determines a change in message sender from previous index and sets sender tag
+					if(i === 0 || (i > 0 && event.sender != this.props.chat.events[i - 1].sender)) {
+						senderLabel = <div className="sender-label">{event.sender}  <span className='message-time'> {hours}:{minutes} {ampm}</span></div>;
+					}
+					// sets clases for sent or received message styling
+					if(event.sender == this.props.chat.room.username) {
 						messageClass = "sent-message";
 						textClass = "sent-message-text";
 					} else {
@@ -88,8 +108,8 @@ class ChatPage extends React.Component {
 						textClass = "received-message-text";
 					}
 					return (
-
 						<div className={ messageClass } key={i}>
+							<div>{ senderLabel }</div>
 							<div className={ textClass }>
 								{event.body}
 							</div>
