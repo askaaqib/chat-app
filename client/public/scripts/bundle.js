@@ -33685,11 +33685,13 @@
 		function ChatPage(props) {
 			_classCallCheck(this, ChatPage);
 	
-			//binds 
-			// this.onUnload = this.onUnload.bind(this);
-	
+			//binds onUnload to execute function 
+			//when user leaves room through browser action
 			var _this = _possibleConstructorReturn(this, (ChatPage.__proto__ || Object.getPrototypeOf(ChatPage)).call(this, props));
 	
+			_this.onUnload = _this.onUnload.bind(_this);
+	
+			//handles submit and emits message event to socket
 			_this.handleSubmit = function (e) {
 				e.preventDefault();
 	
@@ -33705,12 +33707,21 @@
 				_this.chatInput.value = '';
 			};
 	
+			//enables submitting chat entry with pressing enter on the keyboard
 			_this.handleKeyPress = function (e) {
 				if (e.key == 'Enter') {
 					_this.handleSubmit(e);
 				}
 			};
 	
+			//
+			_this.emitRoomLeaveEventToSocket = function () {
+				_this.socket.emit('chat-event', {
+					type: ROOM_LEAVE,
+					user: _this.props.chat.room.username,
+					time: Date.now()
+				});
+			};
 			return _this;
 		}
 	
@@ -33934,11 +33945,7 @@
 	
 				//emits event to show others room was left by a user
 				//when the user unmounts in app instead of navigating through browser
-				this.socket.emit('chat-event', {
-					type: ROOM_LEAVE,
-					user: this.props.chat.room.username,
-					time: Date.now()
-				});
+				this.emitRoomLeaveEventToSocket();
 	
 				this.socket.close();
 			}
@@ -33949,11 +33956,7 @@
 		}, {
 			key: 'onUnload',
 			value: function onUnload(event) {
-				this.socket.emit('chat-event', {
-					type: ROOM_LEAVE,
-					user: this.props.chat.room.username,
-					time: Date.now()
-				});
+				this.emitRoomLeaveEventToSocket();
 			}
 		}]);
 	

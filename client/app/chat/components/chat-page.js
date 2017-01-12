@@ -14,9 +14,11 @@ class ChatPage extends React.Component {
 	constructor(props) {
 		super(props);
 
-		//binds 
-		// this.onUnload = this.onUnload.bind(this);
+		//binds onUnload to execute function 
+		//when user leaves room through browser action
+		this.onUnload = this.onUnload.bind(this);
 
+		//handles submit and emits message event to socket
 		this.handleSubmit = (e) => {
 			e.preventDefault();
 
@@ -32,12 +34,21 @@ class ChatPage extends React.Component {
 			this.chatInput.value = '';
 		};
 
+		//enables submitting chat entry with pressing enter on the keyboard
 		this.handleKeyPress = (e) => {
 			if(e.key == 'Enter'){
 			  this.handleSubmit(e);
 			}
 		};
 
+		//
+		this.emitRoomLeaveEventToSocket = () => {
+		  this.socket.emit('chat-event', {
+				type: ROOM_LEAVE,
+				user: this.props.chat.room.username,
+				time: Date.now()
+			})
+		}
 	}
 
 	componentWillMount() {
@@ -191,11 +202,7 @@ class ChatPage extends React.Component {
 		
 		//emits event to show others room was left by a user
 		//when the user unmounts in app instead of navigating through browser
-		this.socket.emit('chat-event', {
-			type: ROOM_LEAVE,
-			user: this.props.chat.room.username,
-			time: Date.now()
-		})
+		this.emitRoomLeaveEventToSocket()
 
 		this.socket.close();
 	} 	
@@ -203,14 +210,9 @@ class ChatPage extends React.Component {
 	//emits event to let others know when a user has left the chat through the browser
 	//i.e. closing the tab or navigating to another site
 	onUnload(event) { 
-	  this.socket.emit('chat-event', {
-			type: ROOM_LEAVE,
-			user: this.props.chat.room.username,
-			time: Date.now()
-		})
+		this.emitRoomLeaveEventToSocket()
 	}
 }
-
 
 // CONNECT TO REDUX AND EXPORT COMPONENT 
 const mapStateToProps = (state) => {
