@@ -37,4 +37,8 @@ Setup:
 How to run: 
 * Run `node index.js` or `nodemon`. 
 
+##TODO
+* navbar
+* store messages in NoSQL for every room
+* track active users in socket 
 
